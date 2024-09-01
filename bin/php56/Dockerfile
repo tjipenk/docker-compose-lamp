@@ -1,4 +1,4 @@
-FROM php:5.6-apache
+FROM php:5.6.40-apache
 
 # Backup and clean source.list file
 RUN cp /etc/apt/sources.list /etc/apt/sources.list.old && \

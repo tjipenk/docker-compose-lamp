@@ -1,4 +1,4 @@
-FROM php:8.0.30-apache-bullseye
+FROM php:8.3.11-apache-bullseye
 
 # Surpresses debconf complaints of trying to install apt packages interactively
 # https://github.com/moby/moby/issues/4032#issuecomment-192327844
@@ -36,13 +36,18 @@ openssl && \
     curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Install xdebug
-RUN pecl install xdebug-3.1.4 && \
+RUN pecl install xdebug && \
     docker-php-ext-enable xdebug && \
     mkdir /var/log/xdebug
 
 # Install redis
-RUN pecl install redis-5.3.3 && \
+RUN pecl install redis && \
     docker-php-ext-enable redis
+    
+# Install memcached
+RUN apt-get update && apt-get install -y libmemcached-dev libssl-dev zlib1g-dev \
+	&& pecl install memcached-3.2.0 \
+	&& docker-php-ext-enable memcached 
 
 # Install imagick
 RUN apt-get update && \
@@ -52,7 +57,7 @@ RUN apt-get update && \
 # Workarround until imagick is available in pecl with php8 support
 # Imagick Commit to install
 # https://github.com/Imagick/imagick
-ARG IMAGICK_COMMIT="132a11fd26675db9eb9f0e9a3e2887c161875206"
+ARG IMAGICK_COMMIT="661405abe21d12003207bc8eb0963fafc2c02ee4"
 
 RUN cd /usr/local/src && \
     git clone https://github.com/Imagick/imagick && \
@@ -73,7 +78,6 @@ RUN docker-php-ext-install pdo_mysql && \
     docker-php-ext-install bcmath && \
     docker-php-ext-install mysqli && \
     docker-php-ext-install curl && \
-    docker-php-ext-install tokenizer && \
     docker-php-ext-install zip && \
     docker-php-ext-install -j$(nproc) intl && \
     docker-php-ext-install mbstring && \
@@ -81,6 +85,24 @@ RUN docker-php-ext-install pdo_mysql && \
     docker-php-ext-install calendar && \
     docker-php-ext-install exif
 
+# Install Node JS
+#RUN apt-get update && \
+#    apt-get install -yq --no-install-recommends \
+#    open-ssl \
+#    curl \ 
+#    wget \
+#    git \
+#    gnupg \
+#    # more stuff
+
+#RUN curl -fsSL https://deb.nodesource.com/setup_current.x | bash - && \
+#    apt-get install -y nodejs npm unzip \
+#    build-essential && \
+#    node --version && \ 
+#    npm --version
+
+RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
+RUN apt install nodejs
 
 # Install Freetype 
 RUN apt-get -y update && \
